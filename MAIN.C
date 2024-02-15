@@ -3,7 +3,6 @@
 #include <time.h>
 #include <conio.h>
 #include <dos.h>
-#include <graphics.h>
 
 
 #define BOOL int
@@ -12,52 +11,29 @@
 
 
 #define ITERATIONS 15
-#define MAP_X 15
-#define MAP_Y 15
+#define MAP_X 20
+#define MAP_Y 20
+
+/* Level generation and positional variables */
+int level = 1; 
+BOOL MAP [MAP_X][MAP_Y];
+BOOL MAP_PREV [MAP_X][MAP_Y];
+int ENCOUNTERS [MAP_X][MAP_Y];
+BOOL isExit = FALSE;
+
+int playerX; int playerY;
+int prevX; int prevY;
+
+/*int topTrend, leftTrend, rightTrend, bottomTrend;*/     /* UNUSED */
 
 
-void musicFunc(int track){
-	if( track == 1){
-		sound(500);
-		sound(500);
-		delay(200);
-	
-				
-		sound(700);
-		delay(200);
-				
-		sound(1000);
-		delay(200);
-				
-		sound(1300);
-		delay(200);
-		 
-		sound(500);
-		delay(200);
-		 
-		sound(1300);
-		delay(200);
-		nosound();
-	}
-	
-	/* Level up song */
-	else if( track == 2 ){
-		sound(1000);
-		delay(200);
-	
-				
-		sound(1200);
-		delay(400);
-				
-		sound(2000);
-		delay(600);
-		nosound();
-	}
-}
+/* ------------------------------------------------------ */
 
-void clearScreen(BOOL clearMap, BOOL clearAll, BOOL clearCombat){
-	int i, j;
-	
+
+/* Misc variables */
+int i, j, x;
+
+void clearScreen(BOOL clearMap, BOOL clearAll, BOOL clearCombat){	
 	if(clearMap == TRUE){
 		for(j = 0; j != MAP_Y; j++){
 			gotoxy(35,j+1);
@@ -84,7 +60,114 @@ void clearScreen(BOOL clearMap, BOOL clearAll, BOOL clearCombat){
 	
 	
 	gotoxy(1,1);
+}
+
+void drawMap(int redrawMode){
+	if (redrawMode == 0){
+		clearScreen(0,1,0);
+		/* Draw the map */
+		for( i = 0; i != MAP_X; i++){
+		  for (j = 0; j != MAP_Y; j++){
+			  gotoxy(i+35,j+1);
+			  
+			  if(ENCOUNTERS[i][j] == 1){
+				textcolor(6);
+				textbackground(0);
+				cprintf("<");
+			  }
+			  
+			  if(ENCOUNTERS[i][j] == 3){
+				textcolor(14);
+				textbackground(0);
+				cprintf("$");
+			  }
+			  
+			  if(i == playerX && j == playerY){
+				textcolor(15);
+				textbackground(0);
+				cprintf("\1");
+			  }
+			  
+			  if (MAP[i][j] == TRUE){
+				if (i != playerX || j != playerY){
+					textcolor(0);
+					textbackground(6);
+					cprintf("%c", 176);
+				}
+			  }
+			  
+			  if (MAP[i][j] == FALSE){
+				 textcolor(8);
+				 textbackground(7);
+				 cprintf("%c", 219);
+			  }
+		  }
+		  printf("\n");
+		}
+	}
 	
+	else if (redrawMode == 1){
+		gotoxy(playerX + 35,playerY + 1);
+		textcolor(15);
+		textbackground(0);
+		cprintf("\1");
+		
+		
+		gotoxy(prevX + 35,prevY + 1);
+		if(ENCOUNTERS[prevX][prevY] == 1){
+		 textcolor(6);
+		 textbackground(0);
+		 cprintf("<");
+	    }
+	  
+	    if(ENCOUNTERS[prevX][prevY] == 3){
+		  textcolor(14);
+		  textbackground(0);
+		  cprintf("$");
+	    }
+
+	    if (MAP[prevX][prevY] == TRUE){
+			textcolor(0);
+			textbackground(6);
+			cprintf("%c", 176);
+	    }
+	  
+	    if (MAP[prevX][prevY] == FALSE){
+			textcolor(8);
+			textbackground(7);
+			cprintf("%c", 219);
+	    }
+		printf("\n");
+	}
+}
+
+
+void musicFunc(int track){
+	if( track == 1){
+		sound(500); delay(200);
+			
+		sound(700); delay(200);
+		
+		sound(1000); delay(200);
+				
+		sound(1300); delay(200);
+		 
+		sound(500); delay(200);
+		 
+		sound(1300); delay(200);
+		
+		nosound();
+	}
+	
+	/* Level up song */
+	else if( track == 2 ){
+		sound(1000); delay(200);	
+				
+		sound(1200); delay(400);
+				
+		sound(2000); delay(600);
+		nosound();
+	}
 }
 
 int main(){
@@ -109,7 +192,6 @@ int main(){
  int healthRecovery = (playerRecovery * 1.5);
  int baseDamage = 5;
  
- int playerX; int playerY;
  int score = 0;
  /* ----------------------------------------------------------- */
  
@@ -141,19 +223,7 @@ int main(){
  /* -------------------------------------------------------- */
  
  
-  /* Level generation variables */
- int level = 1;
- BOOL MAP [MAP_X][MAP_Y];
- BOOL MAP_PREV [MAP_X][MAP_Y];
- int ENCOUNTERS [MAP_X][MAP_Y];
- BOOL isExit = FALSE;
- 
- int topTrend, leftTrend, rightTrend, bottomTrend; /* UNUSED */
- /* -------------------------------------- */
- 
- 
- /* Misc variables */
- int i, j, x;
+
  
  
  /* Game state variables */
@@ -164,35 +234,39 @@ int main(){
   
  char userInput[100];
  int randInt; int randInt2; int randEnemy;
+  /* ---------------------------------------------------- */
   
-  
- /* Graphics initialization */
- int gd = DETECT, gm;
-  
- /* initgraph initializes the 
-  * graphics system by loading
-  * a graphics driver from disk */
- initgraph(&gd, &gm, "");
-     
  clearScreen(0,1,0);
  
- settextstyle(4, 0, 6);
 
  musicFunc(1);
- setfillstyle( 7, 4 );
- bar(1, 1, 400, 200);
- outtextxy(70, 50, "DeepCrawler");
- settextstyle(4, 0, 2); 
- outtextxy(100, 105, "Press any key to start");
- getch();
  
+ textbackground(4);
+ textcolor(4);
+ 
+ for (i = 0; i != 70; i++){
+	for (j = 0; j != 25; j++){
+		gotoxy(i, j);
+		putch(1);
+	}
+ }
+ 
+ textbackground(0);
+ textcolor(15);
+ 
+ gotoxy(20,5);
+ cprintf("DeepCrawler");
+ gotoxy(15,8);
+ cprintf("Press ENTER to begin...");
+ 
+ getch();
  
  
  
  
  system("cls");
  
- /* Main game loop */
+ /* Main game loop */ 
  while(gameState){
 	 
 	 
@@ -208,7 +282,7 @@ int main(){
 		sleep(3);
 		xp = xp - xpLimit;
 		xpLimit = (xpLimit * 1.5);
-		clearScreen(0,1,0);
+		drawMap(0);
 	 }
 	 
 	 hpMax = (100 + (playerFortitude*3));
@@ -263,7 +337,7 @@ int main(){
 	 randInt = rand() % MAP_X;
 	 randInt2 = rand() % MAP_Y;
 	 MAP[randInt][randInt2] = TRUE; 
-	 playerX = randInt;  playerY = randInt2;
+	 prevX = playerX = randInt;  prevY = playerY = randInt2;
 	 
 	 for ( x = 0; x != ITERATIONS; x++){
 	  for( i = 0; i != MAP_X; i++){
@@ -322,14 +396,17 @@ int main(){
 			}
 		}
 	 }
+	 drawMap(0);
   }
+  
   
   /* --------------------------------------------------------------- */
   
   /* If the player encounters loot, remove it from the encounters array and add score to the player */ 
   gotoxy(1,5);
   printf("                             \n                         ");
-  if(ENCOUNTERS[playerX][playerY] == 3){
+ 
+ if(ENCOUNTERS[playerX][playerY] == 3){
 	randInt = rand() % 100;
 	
 	sound(1500);
@@ -368,8 +445,6 @@ int main(){
 	
 	
 	enemyBaseDamage = (enemyStats[randEnemy][1] + rand() % 10);
-	
-	;
 	
 	
 	printf("You're attacked by the %s!", enemyNames[randEnemy]);
@@ -438,7 +513,7 @@ int main(){
 		score += 500;
 		xp += 25;
 		sleep(2);
-		clearScreen(0,1,0);
+		drawMap(0);
 		break;
 	  }
 	 
@@ -494,45 +569,7 @@ int main(){
   printf("Level [%d] [%d / %d]\n", playerLevel, xp, xpLimit);
   
   
-  /* Draw the map */
-  for( i = 0; i != MAP_X; i++){
-	  for (j = 0; j != MAP_Y; j++){
-		  gotoxy(i+35,j+1);
-		  
-		  if(ENCOUNTERS[i][j] == 1){
-			textcolor(6);
-			textbackground(0);
-			cprintf("<");
-		  }
-		  
-		  if(ENCOUNTERS[i][j] == 3){
-			textcolor(14);
-			textbackground(0);
-			cprintf("$");
-		  }
-		  
-		  if(i == playerX && j == playerY){
-			textcolor(5);
-			textbackground(0);
-			cprintf("@");
-		  }
-		  
-		  if (MAP[i][j] == TRUE){
-			if (i != playerX || j != playerY){
-				textcolor(7);
-				textbackground(6);
-				cprintf(".");
-			}
-		  }
-		  
-		  if (MAP[i][j] == FALSE){
-			 textcolor(8);
-			 textbackground(7);
-			 cprintf("#");
-		  }
-	  }
-	  printf("\n");
-  }
+  
 	  
   
   gotoxy(35,MAP_Y+2);
@@ -544,13 +581,20 @@ int main(){
   
   gotoxy(1,14);
   printf("                               ");
+  
+  /*
+  gotoxy(1,15);
+  printf("                                                            ");
+  
+  
+  gotoxy(1,15);
+  printf("X1, %d, Y1: %d,   X2: %d, Y2: %d \n", playerX, playerY, prevX, prevY);*/
+  
+  
   gotoxy(1,14);
   printf("Enter command: ");
   
-  userInput[0] = getch();   
-  
-  clearScreen(1,0,0);
-  
+  userInput[0] = getch();     
   
   if (userInput[0] == 'q'){
 	clearScreen(0,1,0);
@@ -560,6 +604,7 @@ int main(){
 		break;
 		return 0;
 	}
+	clearScreen(0,1,0);
   }
   
   
@@ -570,7 +615,8 @@ int main(){
    * it determines if the direction would go over the array size, 
    * and if not it then checks if the position is a valid tile.
    * if all conditions are met, the player moves. */
-  
+  prevX = playerX;
+  prevY = playerY;
   /* Move North */
   if (userInput[0] == 'w'){
 	 if (playerY - 1 != -1){
@@ -618,6 +664,8 @@ int main(){
 		 }
 	 }
   }
-  
+  if (prevY != playerY || prevX != playerX){
+	drawMap(1);
+  }
  }
 }
