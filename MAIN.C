@@ -2,7 +2,8 @@
 #include <STDLIB.h>
 #include <time.h>
 #include <conio.h>
-
+#include <dos.h>
+#include <graphics.h>
 
 
 #define BOOL int
@@ -14,6 +15,45 @@
 #define MAP_X 15
 #define MAP_Y 15
 
+
+void musicFunc(int track){
+	if( track == 1){
+		sound(500);
+		sound(500);
+		delay(200);
+	
+				
+		sound(700);
+		delay(200);
+				
+		sound(1000);
+		delay(200);
+				
+		sound(1300);
+		delay(200);
+		 
+		sound(500);
+		delay(200);
+		 
+		sound(1300);
+		delay(200);
+		nosound();
+	}
+	
+	/* Level up song */
+	else if( track == 2 ){
+		sound(1000);
+		delay(200);
+	
+				
+		sound(1200);
+		delay(400);
+				
+		sound(2000);
+		delay(600);
+		nosound();
+	}
+}
 
 void clearScreen(BOOL clearMap, BOOL clearAll, BOOL clearCombat){
 	int i, j;
@@ -60,12 +100,13 @@ int main(){
  int xpLimit = 100;
  int playerLevel = 1;
  
- int playerStrength = 5;
- int playerDexterity = 5;
- int playerFortitude = 5;
- int playerLuck = 5;
- int playerRecovery = 5;
- int healthRecovery = (playerRecovery * 2.5);
+ int playerStrength = 5; /* Determines attack damage */
+ int playerDexterity = 2; /* Determines dodge */
+ int playerFortitude = 5; /* Determines HP */
+ int playerLuck = 5; /* Slight impact on everything */
+ int playerRecovery = 5; /* HP recovery per turn */
+ 
+ int healthRecovery = (playerRecovery * 1.5);
  int baseDamage = 5;
  
  int playerX; int playerY;
@@ -80,7 +121,23 @@ int main(){
  int enemyHealthMax;
  int enemyBaseDamage;
  
- char monsterName[70] = "Decaying Skeleton";
+ char monsterName[70];
+ 
+ 
+ /* Stats are stored as HP, ATTACK
+ * 1 = Decaying Skeleton
+ * 0 = Giant Spider */
+ 
+ int enemyStats[2][2] = { {65,10},{35,30} };
+ 
+ 
+ 
+  /* Monster Names
+   * 0 = Decaying Skeleton
+   * 1 = Giant Spider */
+ char enemyNames[2][70] = { {"Decaying Skeleton"}, {"Giant Spider"}};
+ 
+ 
  /* -------------------------------------------------------- */
  
  
@@ -90,101 +147,72 @@ int main(){
  BOOL MAP_PREV [MAP_X][MAP_Y];
  int ENCOUNTERS [MAP_X][MAP_Y];
  BOOL isExit = FALSE;
+ 
+ int topTrend, leftTrend, rightTrend, bottomTrend; /* UNUSED */
  /* -------------------------------------- */
+ 
  
  /* Misc variables */
  int i, j, x;
- int topTrend, leftTrend, rightTrend, bottomTrend;
+ 
  
  /* Game state variables */
  BOOL gameState = TRUE; 
  BOOL isCombat = FALSE;
+ BOOL gameStart = TRUE;
  int counter = 0;
- 
-
- 
+  
  char userInput[100];
- int randInt; int randInt2;
+ int randInt; int randInt2; int randEnemy;
   
   
-  system("cls");
-   
- /* The following code initializes the map to begin with, and is reused later. 
-  * Consider moving it over to a function in future versions */
- /* Sets the MAP and ENCOUNTERS tables to be equal to zero */
- for( i = 0; i != MAP_X; i++){
-	  for (j = 0; j != MAP_Y; j++){
-		 MAP[i][j] = FALSE;
-		 ENCOUNTERS[i][j] = 0;
-	  }
-  }
- randInt = rand() % 10;
- randInt2 = rand() % 10;
- MAP[randInt][randInt2] = TRUE; 
- playerX = randInt;  playerY = randInt2;
- 
- for ( x = 0; x != ITERATIONS; x++){
-  for( i = 0; i != MAP_X; i++){
-	  for (j = 0; j != MAP_Y; j++){
-		if (MAP[i][j] == TRUE){
-			randInt = rand() % 100;
-			if(randInt > 0 && randInt < 25){
-				if(i-1 != -1){
-					MAP[i-1][j] = TRUE;
-				}
-			}
-			if(randInt > 24 && randInt < 50){
-				if(i+1 != MAP_X){
-					MAP[i+1][j] = TRUE;
-				}
-			}
-			if(randInt > 49 && randInt < 75){
-				if(j-1 != -1){
-					MAP[i][j-1] = TRUE;
-				}
-			}
-			if(randInt > 74){
-				if(j+1 != MAP_Y){
-					MAP[i][j+1] = TRUE;
-				}
-			}
-		}
-	  }
-    }
-  }
-    
-  /* Creates an exit somewhere in the level where there's a free spot */
-  while (!isExit){
-	  for (i = 0; i != MAP_X; i++){
-		  for(j = 0; j != MAP_Y; j++){
-			  if(MAP[i][j] == TRUE){
-				randInt = rand() % 10;
-				if (randInt > 7 && isExit == FALSE){
-					ENCOUNTERS[i][j] = 1;
-					isExit = TRUE;
-					break;
-				}
-			  }
-		  }
-	  }
-  }
-
-	for(i = 0; i != MAP_X; i++){
-		for(j = 0; j != MAP_Y; j++){
-			MAP_PREV[i][j]  = MAP[i][j];
-		}
-	}
-
-   /* ----------------------------------------------------------- */
-
+ /* Graphics initialization */
+ int gd = DETECT, gm;
+  
+ /* initgraph initializes the 
+  * graphics system by loading
+  * a graphics driver from disk */
+ initgraph(&gd, &gm, "");
+     
  clearScreen(0,1,0);
  
+ settextstyle(4, 0, 6);
+
+ musicFunc(1);
+ setfillstyle( 7, 4 );
+ bar(1, 1, 400, 200);
+ outtextxy(70, 50, "DeepCrawler");
+ settextstyle(4, 0, 2); 
+ outtextxy(100, 105, "Press any key to start");
+ getch();
+ 
+ 
+ 
+ 
+ 
+ system("cls");
+ 
  /* Main game loop */
- while(gameState == TRUE){
+ while(gameState){
 	 
-	 /* Check and set player stats */
+	 
+	 
+	 /* Check and set player stats, level up, etc */
+	 
+	 if (xp >= xpLimit){
+		playerLevel++;
+		clearScreen(0,1,0);
+		musicFunc(2);
+		printf("YOU HAVE LEVELED UP!\n");
+		printf("THIS IS CURRENTLY A PLACEHOLDER, STAY TUNED FOR MORE!\n");
+		sleep(3);
+		xp = xp - xpLimit;
+		xpLimit = (xpLimit * 1.5);
+		clearScreen(0,1,0);
+	 }
+	 
 	 hpMax = (100 + (playerFortitude*3));
-	 hp += (playerRecovery*2.5);
+	 hp += (playerRecovery*1.5);
 	 if(hp > hpMax){
 		hp = hpMax;
 	 }
@@ -195,7 +223,7 @@ int main(){
 	
 	
    /* If the player encounters a staircase, move them to the next level */ 
-  if(ENCOUNTERS[playerX][playerY] == 1){
+  if(ENCOUNTERS[playerX][playerY] == 1 || counter == 1){
 	 
 	 /* Play the moving down sound */
 	 sound(400);
@@ -299,6 +327,8 @@ int main(){
   /* --------------------------------------------------------------- */
   
   /* If the player encounters loot, remove it from the encounters array and add score to the player */ 
+  gotoxy(1,5);
+  printf("                             \n                         ");
   if(ENCOUNTERS[playerX][playerY] == 3){
 	randInt = rand() % 100;
 	
@@ -330,7 +360,19 @@ int main(){
 
   if(isCombat){ 
 	clearScreen(0,1,0);
-	printf("You're attacked by the %s!", monsterName);
+	
+	randEnemy = rand() % 2;
+	
+	enemyHealth  = (enemyStats[randEnemy][0] + (-10 + rand() % 20) );
+	enemyHealthMax = enemyHealth;
+	
+	
+	enemyBaseDamage = (enemyStats[randEnemy][1] + rand() % 10);
+	
+	;
+	
+	
+	printf("You're attacked by the %s!", enemyNames[randEnemy]);
 	/* Play the moving down sound */
 	sound(500);
 	delay(400);
@@ -342,9 +384,9 @@ int main(){
 	delay(300);
 	nosound();
 	
-	enemyHealthMax = enemyHealth = 25 + rand() % 40;
-	enemyBaseDamage = 5 + rand() % 10;
+	
 	sleep(1);
+	
 	clearScreen(0,1,0);
   }
   
@@ -361,7 +403,7 @@ int main(){
 		textcolor(2);
 		textbackground(0);
 		gotoxy(1,5);
-		cprintf("You strike the %s for %d  damage!\n", monsterName, ( (  (baseDamage + randInt) * ( playerStrength  / 2))  )     ); 
+		cprintf("You strike the %s for %d  damage!\n", enemyNames[randEnemy], ( (  (baseDamage + randInt) * ( playerStrength  / 2))  )     ); 
 		enemyHealth -= ((baseDamage + randInt) * ( playerStrength  / 2));
 		sound(1400);
 		delay(200);
@@ -373,7 +415,7 @@ int main(){
 		textcolor(14);
 		textbackground(0);
 		
-		gotoxy(1,6); cprintf("SUCCESS! YOU HAVE DEFEATED THE %s", monsterName); 
+		gotoxy(1,6); cprintf("SUCCESS! YOU HAVE DEFEATED THE %s", enemyNames[randEnemy]); 
 		gotoxy(1,7); cprintf("+%d GOLD!     +%d XP!", 500, 25);
 		
 		sound(500);
@@ -407,7 +449,7 @@ int main(){
 		  textcolor(4);
 		  textbackground(0);
 		  gotoxy(1,6);
-		  cprintf("The %s attacks you, dealing %d damage!\n", monsterName , (enemyBaseDamage + randInt) );
+		  cprintf("The %s attacks you, dealing %d damage!\n", enemyNames[randEnemy] , (enemyBaseDamage + randInt) );
 		  hp -= enemyBaseDamage + randInt;
 		  sound(500);
 		  delay(200);
@@ -429,7 +471,7 @@ int main(){
 		  textcolor(0);
 		  textbackground(4);
 		  gotoxy(1,1);
-		  cprintf("Your adventure has come to an end! You've been defeated by the %s\n\n", monsterName); gotoxy(1,3);
+		  cprintf("Your adventure has come to an end! You've been defeated by the %s\n\n", enemyNames[randEnemy]); gotoxy(1,3);
 		  cprintf("Your final score was: %d\n", score); gotoxy(1,4);
 		  cprintf("You managed to reach the depth of: %d", level); gotoxy(1,7);
 		  
