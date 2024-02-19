@@ -4,20 +4,17 @@
 #include <conio.h>
 #include <dos.h>
 
-
 #define BOOL int
 #define TRUE 1
 #define FALSE 0
 
-
 #define ITERATIONS 15
-#define MAP_X 20
+#define MAP_X 24
 #define MAP_Y 20
 
 /* Level generation and positional variables */
 int level = 1; 
 BOOL MAP [MAP_X][MAP_Y];
-BOOL MAP_PREV [MAP_X][MAP_Y];
 int ENCOUNTERS [MAP_X][MAP_Y];
 BOOL isExit = FALSE;
 
@@ -32,7 +29,12 @@ int prevX; int prevY;
 
 /* Misc variables */
 int i, j, x;
+/*
 
+								C L E A R   				  S C R E E N  			   L O O P 
+
+
+*/
 void clearScreen(BOOL clearMap, BOOL clearAll, BOOL clearCombat){	
 	if(clearMap == TRUE){
 		for(j = 0; j != MAP_Y; j++){
@@ -62,7 +64,22 @@ void clearScreen(BOOL clearMap, BOOL clearAll, BOOL clearCombat){
 	gotoxy(1,1);
 }
 
+
+
+
+
+/*
+
+								D R A W   				  M A P   			   L O O P 
+
+
+*/
+
+
+
+
 void drawMap(int redrawMode){
+	
 	if (redrawMode == 0){
 		clearScreen(0,1,0);
 		/* Draw the map */
@@ -142,45 +159,126 @@ void drawMap(int redrawMode){
 }
 
 
+
+
+
+
+
+
+/*
+
+										SOUND			AND			MUSIC			LOOP
+
+
+*/
+
 void musicFunc(int track){
+	/* Game start noise */
 	if( track == 1){
-		sound(500); delay(200);
+		sound(500); delay(150);
 			
-		sound(700); delay(200);
+		sound(700); delay(150);
 		
-		sound(1000); delay(200);
+		sound(1000); delay(150);
 				
-		sound(1300); delay(200);
+		sound(1300); delay(150);
 		 
-		sound(500); delay(200);
+		sound(500); delay(150);
 		 
-		sound(1300); delay(200);
+		sound(1300); delay(150);
 		
 		nosound();
 	}
 	
 	/* Level up song */
 	else if( track == 2 ){
-		sound(1000); delay(200);	
+		sound(1000); delay(150);	
 				
-		sound(1200); delay(400);
+		sound(1200); delay(350);
 				
-		sound(2000); delay(600);
+		sound(2000); delay(500);
+		nosound();
+	}
+	
+	/* Bad noise */ 
+	else if ( track == 3){
+		sound(200);
+		delay(200);
+		nosound();
+	}
+	
+	/* Good noise */ 
+	else if ( track == 4){
+		sound(1400);
+		delay(200);
+		nosound();
+	}
+	
+	/* Enemy defeat noise */ 
+	else if (track == 5){
+		sound(500);
+		delay(200);
+		
+		sound(700);
+		delay(200);
+		
+		sound(1000);
+		delay(200);
+		
+		sound(1300);
+		delay(200);
+		
+		nosound();
+	}
+	
+	
+	/* Moving down noise */ 
+	else if (track == 6){
+		sound(400);
+		delay(200);
+	
+		sound(500);
+		delay(400);
+	
+		sound(400);
+		delay(200);
+		nosound();
+	}
+	
+	
+	/* Movement noise */
+	else if (track == 7){
+		sound(1500);
+		delay(15);
 		nosound();
 	}
 }
 
+
+
+
+
+
+
+/*
+
+									M A I N   				  G A M E  			   L O O P 
+
+
+*/
+
 int main(){
 	
+
+	
  /* Player Variables */
- int hp = 100;
- int hpMax = 100;
+ int hp = 100; int hpMax = 100;
  
- int ep = 100;
- int epMax = 100;
  
- int xp = 0;
- int xpLimit = 100;
+ int ep = 100; int epMax = 100;
+ 
+ int xp = 0; int xpLimit = 100;
+ 
  int playerLevel = 1;
  
  int playerStrength = 5; /* Determines attack damage */
@@ -189,82 +287,113 @@ int main(){
  int playerLuck = 5; /* Slight impact on everything */
  int playerRecovery = 5; /* HP recovery per turn */
  
- int healthRecovery = (playerRecovery * 1.5);
+ 
  int baseDamage = 5;
  
+ BOOL dodgeState = FALSE;
+ 
  int score = 0;
+ 
+ 
+ 
  /* ----------------------------------------------------------- */
  
  
  
- /* Enemy Variables */
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ /* -------- Enemy Variables -------- */
  
  int enemyHealth;
  int enemyHealthMax;
  int enemyBaseDamage;
+ BOOL chargedAttack = FALSE;
+ 
+ 
  
  char monsterName[70];
  
  
- /* Stats are stored as HP, ATTACK
- * 1 = Decaying Skeleton
- * 0 = Giant Spider */
+ /* Stats are stored as 
  
- int enemyStats[2][2] = { {65,10},{35,30} };
+ 1. HP, 
+ 2. BASE ATTACK, 
+ 3. BASE XP REWARD, 
+ 4. BASE GOLD REWARD,
+ 5. DEXTERITY, ENERGY  
+ 
+ in index*/
+ int enemyStats[3][5] = { 
+ 
+ {75,15,25,100, 1}, /* Decaying Skeleton */
+ {45,30,15,50, 3},  /* Giant Spider */
+ {35,10,15,50, 6}  /* Giant Rat */
+ 
+ };
  
  
  
   /* Monster Names
    * 0 = Decaying Skeleton
-   * 1 = Giant Spider */
- char enemyNames[2][70] = { {"Decaying Skeleton"}, {"Giant Spider"}};
+   * 1 = Giant Spider
+   * 2 = Giant Rat */
+ char enemyNames[3][70] = { 
+ 
+ {"Decaying Skeleton"}, 
+ {"Giant Spider"},
+ {"Giant Rat"}
+ 
+ };
  
  
  /* -------------------------------------------------------- */
  
- 
 
  
  
- /* Game state variables */
+ /* -------- Game state variables -------- */
  BOOL gameState = TRUE; 
  BOOL isCombat = FALSE;
- BOOL gameStart = TRUE;
  int counter = 0;
   
  char userInput[100];
  int randInt; int randInt2; int randEnemy;
+ srand(time(NULL));
   /* ---------------------------------------------------- */
   
- clearScreen(0,1,0);
- 
 
  musicFunc(1);
  
- textbackground(4);
+ textbackground(0);
  textcolor(4);
  
  for (i = 0; i != 70; i++){
 	for (j = 0; j != 25; j++){
 		gotoxy(i, j);
-		putch(1);
+		textcolor(rand() % 2);
+		textbackground(rand() % 2);
+		putch(20 + rand() % 158);
 	}
  }
  
  textbackground(0);
  textcolor(15);
  
- gotoxy(20,5);
+ gotoxy(25,7);
  cprintf("DeepCrawler");
- gotoxy(15,8);
+ gotoxy(20,12);
  cprintf("Press ENTER to begin...");
  
  getch();
- 
- 
- 
- 
+
  system("cls");
+ 
+ 
  
  /* Main game loop */ 
  while(gameState){
@@ -277,53 +406,84 @@ int main(){
 		playerLevel++;
 		clearScreen(0,1,0);
 		musicFunc(2);
-		printf("YOU HAVE LEVELED UP!\n");
-		printf("THIS IS CURRENTLY A PLACEHOLDER, STAY TUNED FOR MORE!\n");
-		sleep(3);
+		printf("YOU HAVE LEVELED UP!\n\n");
+		printf("THIS IS CURRENTLY A PLACEHOLDER, STAY TUNED FOR MORE!\n\n");
+		
+		printf("[1] Strength: %d\n", playerStrength);
+		printf("[2] Dexterity: %d\n", playerDexterity);
+		printf("[3] Fortitude: %d\n", playerFortitude );
+		printf("[4] Luck: %d\n", playerLuck ); 
+		printf("[5] Recovery: %d\n\n", playerRecovery);
+		
+		printf("Please select a skill to increase:\n");
+		
+		
+		while(TRUE){
+			userInput[0] = getch();
+			if(userInput[0] == '1'){
+				playerStrength++;
+				break;
+			}
+			else if(userInput[0] == '2'){
+				playerDexterity++;
+				break;
+			}
+			else if(userInput[0] == '3'){
+				playerFortitude++;
+				break;
+			}
+			else if(userInput[0] == '4'){
+				playerLuck++;
+				break;
+			}
+			else if(userInput[0] == '5'){
+				playerRecovery++;
+				break;
+			}
+			else{
+				printf("\nINVALID OPTION SELECTED! Please select a number value!\n");
+			}
+		}
+		
+		
 		xp = xp - xpLimit;
 		xpLimit = (xpLimit * 1.5);
 		drawMap(0);
 	 }
 	 
+	 /* Determine player max HP, as well as recover HP and EP per turn */
+	 
 	 hpMax = (100 + (playerFortitude*3));
+	 epMax = (100 + (playerDexterity*2));
 	 hp += (playerRecovery*1.5);
+	 ep += (playerRecovery*1.5);
 	 if(hp > hpMax){
 		hp = hpMax;
+	 }
+	 if (ep > epMax){
+		ep = epMax;
 	 }
 	 
 	counter++;
 	
+	/* ---------------------------------------------------------------------------- */
 	
 	
 	
-   /* If the player encounters a staircase, move them to the next level */ 
+	
+	
+	
+   /* 
+    * If the player encounters a staircase, move them to the next level
+    *																		 */ 
   if(ENCOUNTERS[playerX][playerY] == 1 || counter == 1){
 	 
 	 /* Play the moving down sound */
-	 sound(400);
-	 delay(200);
-	
-	 sound(500);
-	 delay(400);
-	
-	 sound(400);
-	 delay(200);
-	
-	 nosound();
-	 
-	 
-	 
-	 
+	 musicFunc(6);
+
 	 isExit = FALSE;
 	 level++;
 	 
-	  for (i = 0; i != MAP_X; i++){
-		  for(j = 0; j != MAP_Y; j++){
-			  if (MAP[i][j] != MAP_PREV[i][j]){
-				MAP_PREV[i][j] = MAP[i][j];
-			  }
-		  }
-	  }
 
 	/* Sets the MAP and ENCOUNTERS tables to be equal to zero */
 	 for( i = 0; i != MAP_X; i++){
@@ -399,8 +559,24 @@ int main(){
 	 drawMap(0);
   }
   
-  
+
   /* --------------------------------------------------------------- */
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   /* If the player encounters loot, remove it from the encounters array and add score to the player */ 
   gotoxy(1,5);
@@ -415,7 +591,6 @@ int main(){
 	delay(150);
 	nosound();
 	
-	nosound();
 	if (randInt < 80 - (playerLuck*2)){
 		score += 100;
 		ENCOUNTERS[playerX][playerY] = 0;
@@ -429,8 +604,15 @@ int main(){
   }
    /* --------------------------------------------------------------- */
   
-  
+
+
+
+
+
+
+  /* -------------- Combat Loop --------------- */  
   randInt = rand() % 100;
+  
   if(randInt > 95){
 	isCombat = TRUE;
   }
@@ -438,25 +620,25 @@ int main(){
   if(isCombat){ 
 	clearScreen(0,1,0);
 	
-	randEnemy = rand() % 2;
+	randEnemy = rand() % 3;
 	
 	enemyHealth  = (enemyStats[randEnemy][0] + (-10 + rand() % 20) );
 	enemyHealthMax = enemyHealth;
 	
 	
-	enemyBaseDamage = (enemyStats[randEnemy][1] + rand() % 10);
+	enemyBaseDamage = (enemyStats[randEnemy][1] + rand() % 5);
 	
 	
 	printf("You're attacked by the %s!", enemyNames[randEnemy]);
-	/* Play the moving down sound */
+	/* Play the combat sound */
 	sound(500);
-	delay(400);
+	delay(350);
 	
 	sound(350);
-	delay(400);
+	delay(350);
 	
 	sound(20);
-	delay(300);
+	delay(250);
 	nosound();
 	
 	
@@ -468,77 +650,157 @@ int main(){
   while(isCombat){
 	  clearScreen(0,0,1);
 	  printf("HP [%d / %d]\n", hp, hpMax);
+	  printf("EP [%d / %d]\n", ep, epMax);
 	  printf("Enemy HP [%d / %d]\n", enemyHealth, enemyHealthMax);
-	  printf("[1] Attack\n");
+	  printf("[1] Attack      [2] Dodge\n");
 	  printf("Enter command: ");
 	  scanf("%s", userInput);
 	  
+	  
+	  
+	  
 	  if(!strcmp((userInput), "1")){
-		randInt = rand() % ( 2 * playerLuck);
-		textcolor(2);
-		textbackground(0);
-		gotoxy(1,5);
-		cprintf("You strike the %s for %d  damage!\n", enemyNames[randEnemy], ( (  (baseDamage + randInt) * ( playerStrength  / 2))  )     ); 
-		enemyHealth -= ((baseDamage + randInt) * ( playerStrength  / 2));
-		sound(1400);
-		delay(200);
-		nosound();
-		sleep(1);
+		randInt = (rand() % 100) - ( 2 * playerLuck);
+		if (randInt > 25 + enemyStats[randEnemy][4]){	
+			randInt = rand() % 5 + ( 1.5 * playerLuck);
+			textcolor(2);
+			textbackground(0);
+			gotoxy(1,5);
+			cprintf("You strike the %s for %d damage!\n", enemyNames[randEnemy], ( (  (baseDamage + randInt) * ( playerStrength  / 2))  )     ); 
+			
+			enemyHealth -= ((baseDamage + randInt) * ( playerStrength  / 2));
+			
+			musicFunc(4);
+			sleep(1);
+		}	
+		else{
+			textcolor(4);
+			textbackground(0);
+			gotoxy(1,5);
+			cprintf("The %s dodges your attack!\n", enemyNames[randEnemy]); 
+			musicFunc(3);
+			sleep(1);
+		}
 	  }
 	  
+	  
+	  
+	  
+	  
+	  
+	  if(!strcmp((userInput), "2")){
+		  textcolor(2);
+		  textbackground(0);
+		  gotoxy(1,5);
+		  cprintf("You prepare to dodge!\n"); 
+		  dodgeState = TRUE;
+		  ep -= (20) - (1.25 * playerDexterity);
+		  musicFunc(4);
+		  sleep(1);
+	  }
+	  
+	  
+	  
+	  /* Check for if enemy has been defeated before they can attack the player */
 	  if (enemyHealth <= 0){
 		textcolor(14);
 		textbackground(0);
 		
 		gotoxy(1,6); cprintf("SUCCESS! YOU HAVE DEFEATED THE %s", enemyNames[randEnemy]); 
-		gotoxy(1,7); cprintf("+%d GOLD!     +%d XP!", 500, 25);
+		gotoxy(1,7); cprintf("+%d GOLD!     +%d XP!", enemyStats[randEnemy][3], enemyStats[randEnemy][2]);
 		
-		sound(500);
-		delay(200);
-		
-		sound(700);
-		delay(200);
-		
-		sound(1000);
-		delay(200);
-		
-		sound(1300);
-		delay(200);
-		
-		nosound();
-		
-		
+		musicFunc(5);
 		
 		isCombat = FALSE;
-		score += 500;
-		xp += 25;
+		score += enemyStats[randEnemy][3];
+		xp += enemyStats[randEnemy][2];
 		sleep(2);
 		drawMap(0);
 		break;
 	  }
 	 
+	 
+	 
 	  /* Being attacked by the enemy */ 
-	  randInt = rand() % 100;
-	  if (randInt > 30 + ((playerLuck/2) + playerDexterity)){
-		  randInt = rand() % (15 - playerLuck);
-		  textcolor(4);
-		  textbackground(0);
-		  gotoxy(1,6);
-		  cprintf("The %s attacks you, dealing %d damage!\n", enemyNames[randEnemy] , (enemyBaseDamage + randInt) );
-		  hp -= enemyBaseDamage + randInt;
-		  sound(500);
-		  delay(200);
-		  nosound();
+	  if (!chargedAttack){
+		  randInt = rand() % 100;
+		  if (randInt > 30 + ((playerLuck/2) + playerDexterity)){
+			  randInt = rand() % 100;
+			  
+			  if (randInt > 80){
+				chargedAttack = TRUE;
+				textcolor(4);
+				textbackground(0);
+				gotoxy(1,6);
+				cprintf("The %s prepares to strike you with a heavy attack!", enemyNames[randEnemy]);
+				musicFunc(3);
+			  }
+			  
+			  else if (!dodgeState) {
+				  randInt = rand() % (15 - playerLuck);
+				  textcolor(4);
+				  textbackground(0);
+				  gotoxy(1,6);
+				  cprintf("The %s attacks you, dealing %d damage!\n", enemyNames[randEnemy] , (enemyBaseDamage + randInt) );
+				  hp -= enemyBaseDamage + randInt;
+				  musicFunc(3);
+			  }
+			  else {
+				  textcolor(2);
+				  textbackground(0);
+				  gotoxy(1,6);
+				  cprintf("You dodge the %s's attack!", enemyNames[randEnemy]);
+				  musicFunc(4);
+			  }
+			   
+		  }
+		  /* Dexterity based auto-dodge chance to any attack */ 
+		  else{
+			textcolor(2);
+			textbackground(0);
+			gotoxy(1,6);
+			cprintf("Your quick movements cause the %s to miss!\n", enemyNames[randEnemy] );
+			musicFunc(4);
+			
+		  }
 		  sleep(1);
 	  }
-	  /* Dexterity based auto-dodge chance to any attack */ 
-	  else{
-		textcolor(2);
-		textbackground(0);
-		gotoxy(1,6);
-		cprintf("You successfully dodge the enemy attack!\n");
+	  
+	  
+	  
+	  else {
+		if(!dodgeState){
+			randInt = rand() % (40 - playerLuck);
+		    textcolor(4);
+		    textbackground(0);
+		    gotoxy(1,6);
+		    cprintf("The %s strikes you with a heavy attack, dealing %d damage!\n", enemyNames[randEnemy] , (enemyBaseDamage + randInt) );
+		    hp -= enemyBaseDamage + randInt;
+		    musicFunc(3);
+			chargedAttack = FALSE;
+		}
+		
+		else{
+			textcolor(4);
+		    textbackground(0);
+		    gotoxy(1,5);
+			cprintf("The %s lunges for a heavy attack!", enemyNames[randEnemy]);
+			musicFunc(3);
+			sleep(1);
+			
+			
+			textcolor(2);
+		    textbackground(0);
+		    gotoxy(1,6);
+		    cprintf("You dodge the %s's heavy attack!", enemyNames[randEnemy]);
+		    musicFunc(4);
+			
+			chargedAttack = FALSE;
+			dodgeState = FALSE;
+		}
 		sleep(1);
 	  }
+	  
 	  
 	  /* GAME OVER! Killed by the enemy */ 
 	  if (hp <= 0){
@@ -596,15 +858,17 @@ int main(){
   
   userInput[0] = getch();     
   
+  
+  /* User command to quit the game, prompts the user to be sure */
   if (userInput[0] == 'q'){
 	clearScreen(0,1,0);
 	printf("Are you sure? (y/n): ");
 	userInput[0] = getch();   
 	if (userInput[0] == 'y'){
-		break;
 		return 0;
 	}
 	clearScreen(0,1,0);
+	drawMap(0);
   }
   
   
@@ -617,7 +881,8 @@ int main(){
    * if all conditions are met, the player moves. */
   prevX = playerX;
   prevY = playerY;
-  /* Move North */
+  
+  /* Move Up */
   if (userInput[0] == 'w'){
 	 if (playerY - 1 != -1){
 		 if(MAP[playerX][playerY - 1] == TRUE){
@@ -629,41 +894,62 @@ int main(){
 	 }
   }
   
-  /* Move East */
-  if (userInput[0] == 'd'){
-	 if (playerX + 1 != MAP_X){
-		 if(MAP[playerX + 1][playerY] == TRUE){
-			 playerX++;
-			 sound(2000);
-			 delay(20);
-			 nosound();
-		 }
-	 }
-  }
-  
-  /* Move South */
-  if (userInput[0] == 's'){
-	 if (playerY + 1 != MAP_Y){
-		 if(MAP[playerX][playerY + 1] == TRUE){
-			 playerY++;
-			 sound(2000);
-			 delay(20);
-			 nosound();
-		 }
-	 }
-  }
-  
-  /* Move West */
+
+   /* Move Left */
   if (userInput[0] == 'a'){
 	 if (playerX - 1 != -1){
 		 if(MAP[playerX - 1][playerY] == TRUE){
 			 playerX--;
-			 sound(2000);
-			 delay(20);
-			 nosound();
+			 musicFunc(7);
 		 }
 	 }
   }
+ 
+  
+  /* Move Down */
+  if (userInput[0] == 's'){
+	 if (playerY + 1 != MAP_Y){
+		 if(MAP[playerX][playerY + 1] == TRUE){
+			 playerY++;
+			 musicFunc(7);
+		 }
+	 }
+  }
+  
+  
+  
+  
+   /* Move Right */
+  if (userInput[0] == 'd'){
+	 if (playerX + 1 != MAP_X){
+		 if(MAP[playerX + 1][playerY] == TRUE){
+			 playerX++;
+			 musicFunc(7);
+		 }
+	 }
+  }
+  
+  
+  
+  
+  if (userInput[0] == 'c'){
+	 clearScreen(0,1,0);
+	 
+	 printf("--- Character stats: ---\n");
+	 
+	 printf("[1] Strength: %d\n", playerStrength);
+	 printf("[2] Dexterity: %d\n", playerDexterity);
+	 printf("[3] Fortitude: %d\n", playerFortitude );
+	 printf("[4] Luck: %d\n", playerLuck ); 
+	 printf("[5] Recovery: %d\n\n", playerRecovery);
+	 
+	 printf("Press any key to continue...");
+	 
+	 getch();
+	 
+	 drawMap(0);
+  }
+  
   if (prevY != playerY || prevX != playerX){
 	drawMap(1);
   }
