@@ -29,12 +29,12 @@ int prevX; int prevY;
 
 /* Misc variables */
 int i, j, x;
-/*
+/*        ======================================================================================================================
 
 								C L E A R   				  S C R E E N  			   L O O P 
 
 
-*/
+          ======================================================================================================================*/
 void clearScreen(BOOL clearMap, BOOL clearAll, BOOL clearCombat){	
 	if(clearMap == TRUE){
 		for(j = 0; j != MAP_Y; j++){
@@ -68,16 +68,19 @@ void clearScreen(BOOL clearMap, BOOL clearAll, BOOL clearCombat){
 
 
 
-/*
+
+
+
+
+
+
+
+/*        ======================================================================================================================
 
 								D R A W   				  M A P   			   L O O P 
 
 
-*/
-
-
-
-
+          ======================================================================================================================*/
 void drawMap(int redrawMode){
 	
 	if (redrawMode == 0){
@@ -165,13 +168,12 @@ void drawMap(int redrawMode){
 
 
 
-/*
+/*        ======================================================================================================================
 
 										SOUND			AND			MUSIC			LOOP
 
 
-*/
-
+          ======================================================================================================================*/
 void musicFunc(int track){
 	/* Game start noise */
 	if( track == 1){
@@ -260,18 +262,20 @@ void musicFunc(int track){
 
 
 
-/*
+/*        ======================================================================================================================
 
 									M A I N   				  G A M E  			   L O O P 
 
 
-*/
+          ======================================================================================================================*/
 
 int main(){
 	
 
 	
- /* Player Variables */
+	
+	
+ /* ------------------- Player Variables ------------------- */
  int hp = 100; int hpMax = 100;
  
  
@@ -293,9 +297,6 @@ int main(){
  BOOL dodgeState = FALSE;
  
  int score = 0;
- 
- 
- 
  /* ----------------------------------------------------------- */
  
  
@@ -321,32 +322,32 @@ int main(){
  
  /* Stats are stored as 
  
- 1. HP, 
- 2. BASE ATTACK, 
- 3. BASE XP REWARD, 
- 4. BASE GOLD REWARD,
- 5. DEXTERITY, ENERGY  
+ [0] 1. HP, 
+ [1] 2. BASE ATTACK, 
+ [2] 3. BASE XP REWARD, 
+ [3] 4. BASE GOLD REWARD,
+ [4] 5. DEXTERITY, ENERGY  
  
  in index*/
  int enemyStats[3][5] = { 
  
- {75,15,25,100, 1}, /* Decaying Skeleton */
- {45,30,15,50, 3},  /* Giant Spider */
- {35,10,15,50, 6}  /* Giant Rat */
+ {75,15,25,100, 1}, /* [0] Decaying Skeleton */
+ {45,30,15,50, 3},  /* [1] Giant Spider */
+ {35,10,15,50, 6}  /* [2] Giant Rat */
  
  };
  
  
  
   /* Monster Names
-   * 0 = Decaying Skeleton
-   * 1 = Giant Spider
-   * 2 = Giant Rat */
+   * [0] = Decaying Skeleton
+   * [1] = Giant Spider
+   * [2] = Giant Rat */
  char enemyNames[3][70] = { 
  
- {"Decaying Skeleton"}, 
- {"Giant Spider"},
- {"Giant Rat"}
+ {"Decaying Skeleton"},  /* [0] */
+ {"Giant Spider"}, /* [1] */
+ {"Giant Rat"} /* [2] */
  
  };
  
@@ -354,6 +355,7 @@ int main(){
  /* -------------------------------------------------------- */
  
 
+ 
  
  
  /* -------- Game state variables -------- */
@@ -367,10 +369,17 @@ int main(){
   /* ---------------------------------------------------- */
   
 
+
  musicFunc(1);
  
  textbackground(0);
  textcolor(4);
+ 
+ 
+ 
+ 
+ 
+ /* ------------------- Draws the Welcome Screen ------------------- */
  
  for (i = 0; i != 70; i++){
 	for (j = 0; j != 25; j++){
@@ -393,14 +402,20 @@ int main(){
 
  system("cls");
  
+ /* ------------------------------------------- */
  
  
- /* Main game loop */ 
+ 
+ 
+ 
+ 
+ 
+ /* ------------------- Main game loop ------------------- */ 
  while(gameState){
 	 
 	 
 	 
-	 /* Check and set player stats, level up, etc */
+	 /* ------------------- Check and set player stats, level up, etc ------------------- */
 	 
 	 if (xp >= xpLimit){
 		playerLevel++;
@@ -450,8 +465,10 @@ int main(){
 		xpLimit = (xpLimit * 1.5);
 		drawMap(0);
 	 }
+	 /* ---------------------------------------------------------------------------- */
 	 
-	 /* Determine player max HP, as well as recover HP and EP per turn */
+	 
+	 /* ------------------- Determine player max HP, as well as recover HP and EP per turn ------------------- */
 	 
 	 hpMax = (100 + (playerFortitude*3));
 	 epMax = (100 + (playerDexterity*2));
@@ -478,14 +495,14 @@ int main(){
     *																		 */ 
   if(ENCOUNTERS[playerX][playerY] == 1 || counter == 1){
 	 
-	 /* Play the moving down sound */
+	 /* ------------------- Play the moving down sound ------------------- */
 	 musicFunc(6);
 
 	 isExit = FALSE;
 	 level++;
 	 
 
-	/* Sets the MAP and ENCOUNTERS tables to be equal to zero */
+	/* ------------------- Sets the MAP and ENCOUNTERS tables to be equal to zero ------------------- */
 	 for( i = 0; i != MAP_X; i++){
 		  for (j = 0; j != MAP_Y; j++){
 			 MAP[i][j] = FALSE;
@@ -528,6 +545,8 @@ int main(){
 		  }
 		}
 	}
+	
+	
 	
 	/* Picks an empty spot in the MAP to create an exit staircase, leading further down */
 	while (!isExit){
@@ -613,11 +632,11 @@ int main(){
   /* -------------- Combat Loop --------------- */  
   randInt = rand() % 100;
   
-  if(randInt > 95){
+  if(randInt > 95){ /* Determines each turn if combat is started */
 	isCombat = TRUE;
   }
 
-  if(isCombat){ 
+  if(isCombat){ /* Starts combat, setting various stats and enabling the combat loop */
 	clearScreen(0,1,0);
 	
 	randEnemy = rand() % 3;
@@ -688,15 +707,21 @@ int main(){
 	  
 	  
 	  
-	  if(!strcmp((userInput), "2")){
+	  if(!strcmp((userInput), "2" && ep > 0)){
 		  textcolor(2);
 		  textbackground(0);
 		  gotoxy(1,5);
+		  
 		  cprintf("You prepare to dodge!\n"); 
 		  dodgeState = TRUE;
-		  ep -= (20) - (1.25 * playerDexterity);
+		  ep -= ((20) - (1.25 * playerDexterity));
+		  
 		  musicFunc(4);
 		  sleep(1);
+		  
+		  if (ep < 0){
+			ep = 0;
+		  }
 	  }
 	  
 	  
